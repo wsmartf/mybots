@@ -1,2 +1,5 @@
 .DS_Store
 pyrosim/__pycache__
+data/
+*.urdf
+*.sdf
