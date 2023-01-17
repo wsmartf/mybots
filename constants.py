@@ -1,0 +1,12 @@
+import math
+
+STEPS = 10000
+GRAVITY = -9.8
+
+AMPLITUDE = math.pi/4
+FREQUENCY = 20
+OFFSET = 0
+
+MAXFORCE = 80
+
+SLEEP_TIME = 0.005
