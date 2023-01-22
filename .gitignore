@@ -3,4 +3,5 @@ pyrosim/__pycache__
 data/
 *.urdf
 *.sdf
+*.nndf
 __pycache__/
