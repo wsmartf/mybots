@@ -96,11 +96,11 @@ class SOLUTION:
         for i in range(len(self.sensor_links)):
             pyrosim.Send_Sensor_Neuron(name = i , linkName = self.sensor_links[i])
 
-        for j in range(c.NUM_SEGMENTS):
+        for j in range(len(self.joints)):
             pyrosim.Send_Motor_Neuron(name = j+len(self.sensor_links), jointName = self.joints[j])
 
         for currentRow in range(len(self.sensor_links)):
-            for currentColumn in range(c.NUM_SEGMENTS):
+            for currentColumn in range(len(self.joints)):
                 pyrosim.Send_Synapse(sourceNeuronName = currentRow,
                                     targetNeuronName = currentColumn+len(self.sensor_links), 
                                     weight = self.weights[currentRow][currentColumn])
