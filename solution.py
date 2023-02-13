@@ -7,37 +7,42 @@ import constants as c
 
 class SOLUTION:
 
-    def __init__(self, nextAvailableID, preLoadWeights=False, weightFile=None):
+    def __init__(self, nextAvailableID=0, preLoadWeights=False, weightFile=None):
         self.myID = nextAvailableID
+        self.sensor_links = []
+        self.joints = []
+        self.preLoadWeights = preLoadWeights
+        self.weightFile = weightFile
 
-        if not preLoadWeights:
-            self.weights = np.random.rand(c.NUM_SENSOR_NEURONS,c.NUM_MOTOR_NEURONS)*2-1
+    def weights_init(self):
+        if not self.preLoadWeights:
+            self.weights = np.random.rand(len(self.sensor_links),c.NUM_SEGMENTS)*2-1
         else:
-            self.weights = np.load(weightFile)
+            self.weights = np.load(self.weightFile)
 
     def Start_Simulation(self, directOrGUI):
-        # self.Create_Body()
-        self.Create_Brain()
-        systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " 2&>1 &"
-        # systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " &"
+        # self.Create_Brain()
+        # systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " 2&>1 &"
+        systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " &"
 
         os.system(systemCommand)
 
     def Wait_For_Simulation_To_End(self):
-        fitnessFileName = "fitness" + str(self.myID) + ".txt"
-        while not os.path.exists(fitnessFileName):
-            time.sleep(0.01)
+        # fitnessFileName = "fitness" + str(self.myID) + ".txt"
+        # while not os.path.exists(fitnessFileName):
+        #     time.sleep(0.01)
 
-        file = open(fitnessFileName, "r")
-        self.fitness = float(file.read())
-        file.close()
-        # print(self.fitness)
-        os.system("rm " + fitnessFileName)
+        # file = open(fitnessFileName, "r")
+        # self.fitness = float(file.read())
+        # file.close()
+        # # print(self.fitness)
+        # os.system("rm " + fitnessFileName)
+        pass
     
-    def Mutate(self):
-        row1 = random.randint(0,c.NUM_SENSOR_NEURONS-1)
-        col1 = random.randint(0,c.NUM_MOTOR_NEURONS-1)
-        self.weights[row1, col1] = random.random()*2-1
+    # def Mutate(self):
+    #     row1 = random.randint(0,c.NUM_SENSOR_NEURONS-1)
+    #     col1 = random.randint(0,c.NUM_MOTOR_NEURONS-1)
+    #     self.weights[row1, col1] = random.random()*2-1
 
     def Set_ID(self, newID):
         self.myID = newID
@@ -45,61 +50,79 @@ class SOLUTION:
     def Get_Fitness(self):
         return self.fitness  
 
-    @(staticmethod)
-    def Create_World():
-        # length, width, height = 1, 1, 1
+    def Create_World(self):
         pyrosim.Start_SDF("world.sdf")
-        # pyrosim.Send_Cube(name="Box", pos=[2, 2, 0.5] , size=[length, width, height])
         pyrosim.End()   
 
-    @staticmethod
-    def Create_Body():
+    def CreateRandomBot(self):
+
+        # Body
         pyrosim.Start_URDF("body.urdf")
-        pyrosim.Send_Cube(name="Torso", pos=[0, 0, 2.25] , size=[1.5, 1.5, 0.5])
-        
-        # Back leg
-        pyrosim.Send_Joint(name = "Torso_BackLeg", parent= "Torso", child = "BackLeg", type = "revolute", position = [0, -0.5, 2], jointAxis="1 0 0")
-        pyrosim.Send_Cube(name="BackLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
-        pyrosim.Send_Joint(name = "BackLeg_LowerBackLeg", parent= "BackLeg", child = "LowerBackLeg", type = "revolute", position = [0, 0, -1], jointAxis="1 0 0")
-        pyrosim.Send_Cube(name="LowerBackLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
 
-        # Front leg
-        pyrosim.Send_Joint(name = "Torso_FrontLeg", parent= "Torso", child = "FrontLeg", type = "revolute", position = [0, 0.5, 2], jointAxis="1 0 0")
-        pyrosim.Send_Cube(name="FrontLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
-        pyrosim.Send_Joint(name = "FrontLeg_LowerFrontLeg", parent= "FrontLeg", child = "LowerFrontLeg", type = "revolute", position = [0, 0, -1], jointAxis="1 0 0")
-        pyrosim.Send_Cube(name="LowerFrontLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
+        seg_size = [random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND)]
+        seg_pos = [0, 0, c.MAX_RAND/2]
 
-        # Right leg
-        pyrosim.Send_Joint(name = "Torso_RightLeg", parent= "Torso", child = "RightLeg", type = "revolute", position = [0.5, 0, 2], jointAxis="0 1 0")
-        pyrosim.Send_Cube(name="RightLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
-        pyrosim.Send_Joint(name = "RightLeg_LowerRightLeg", parent= "RightLeg", child = "LowerRightLeg", type = "revolute", position = [0, 0, -1], jointAxis="0 1 0")
-        pyrosim.Send_Cube(name="LowerRightLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
+        has_sensor = True if random.randint(0, 1) == 1 else False
+        if has_sensor:
+            color_name="Green"
+            rgb=[0,1,0]
+            self.sensor_links.append("Head")
+        else:
+            color_name="Blue"
+            rgb=[0,0,1]
 
-        # # Left leg
-        # pyrosim.Send_Joint(name = "Torso_LeftLeg", parent= "Torso", child = "LeftLeg", type = "revolute", position = [-0.5, 0, 2], jointAxis="0 1 0")
-        # pyrosim.Send_Cube(name="LeftLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
-        # pyrosim.Send_Joint(name = "LeftLeg_LowerLeftLeg", parent= "LeftLeg", child = "LowerLeftLeg", type = "revolute", position = [0, 0, -1], jointAxis="0 1 0")
-        # pyrosim.Send_Cube(name="LowerLeftLeg", pos=[0, 0, -0.5] , size=[0.2, 0.2, 1])
+        pyrosim.Send_Cube(name="Head", pos=seg_pos, size=seg_size, color_name=color_name, rgb=rgb)
+
+        parent_name = "Head"
+        parent_size = seg_size
+
+        for i in range(c.NUM_SEGMENTS):
+            name = str(i)
+
+            has_sensor = True if random.randint(0, 1) == 1 else False
+            if has_sensor: self.sensor_links.append(name)
+            
+            size = self.CreateRandomSegment(name, i, parent_name, parent_size, has_sensor)
+            parent_name = name
+            parent_size = size
 
         pyrosim.End()
-          
-    def Create_Brain(self):
+
+        self.weights_init()
+
+        # Brain
         pyrosim.Start_NeuralNetwork("brain" + str(self.myID) + ".nndf")
 
-        sensorLinkNames = ["LowerBackLeg", "LowerFrontLeg", "LowerRightLeg"]
-        motorJointNames = ["Torso_BackLeg", "Torso_FrontLeg", "Torso_RightLeg", "BackLeg_LowerBackLeg", "FrontLeg_LowerFrontLeg", "RightLeg_LowerRightLeg"]
-        # sensorLinkNames = ["LowerBackLeg", "LowerFrontLeg", "LowerLeftLeg", "LowerRightLeg"]
-        # motorJointNames = ["Torso_BackLeg", "Torso_FrontLeg", "Torso_LeftLeg", "Torso_RightLeg", "BackLeg_LowerBackLeg", "FrontLeg_LowerFrontLeg", "LeftLeg_LowerLeftLeg", "RightLeg_LowerRightLeg"]
+        for i in range(len(self.sensor_links)):
+            pyrosim.Send_Sensor_Neuron(name = i , linkName = self.sensor_links[i])
 
-        for i in range(c.NUM_SENSOR_NEURONS):
-            pyrosim.Send_Sensor_Neuron(name = i , linkName = sensorLinkNames[i])
+        for j in range(c.NUM_SEGMENTS):
+            pyrosim.Send_Motor_Neuron(name = j+len(self.sensor_links), jointName = self.joints[j])
 
-        for j in range(c.NUM_MOTOR_NEURONS):
-            pyrosim.Send_Motor_Neuron(name = j+c.NUM_SENSOR_NEURONS, jointName = motorJointNames[j])
-
-        for currentRow in range(c.NUM_SENSOR_NEURONS):
-            for currentColumn in range(c.NUM_MOTOR_NEURONS):
+        for currentRow in range(len(self.sensor_links)):
+            for currentColumn in range(c.NUM_SEGMENTS):
                 pyrosim.Send_Synapse(sourceNeuronName = currentRow,
-                                    targetNeuronName = currentColumn+c.NUM_SENSOR_NEURONS, 
+                                    targetNeuronName = currentColumn+len(self.sensor_links), 
                                     weight = self.weights[currentRow][currentColumn])
+
         pyrosim.End()
+        
+    def CreateRandomSegment(self, seg_name, i, parent_name, parent_size, has_sensor):
+        seg_size = [random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND)]
+        joint_name = parent_name + "_" + seg_name
+        self.joints.append(joint_name)
+        joint_pos = [0, parent_size[1]/2, c.MAX_RAND/2] if i == 0 else [0, parent_size[1], 0]
+
+        # joint_axis_int = [random.randint(0, 1), random.randint(0, 1), random.randint(0, 1)]
+        # joint_axis = str(joint_axis_int[0]) + " " + str(joint_axis_int[1]) + " " + str(joint_axis_int[2])
+        joint_axis = "0 0 1"
+        pyrosim.Send_Joint(name=joint_name, parent=parent_name, child=seg_name, type="revolute", position=joint_pos, jointAxis=joint_axis)
+        if has_sensor:
+            color_name="Green"
+            rgb=[0,1,0]
+        else:
+            color_name="Blue"
+            rgb=[0,0,1]
+        pyrosim.Send_Cube(name=seg_name, pos=[0, seg_size[1]/2, 0] , size=seg_size, color_name=color_name, rgb=rgb)
+
+        return seg_size
