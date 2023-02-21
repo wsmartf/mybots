@@ -13,6 +13,7 @@ class SOLUTION:
         self.joints = []
         self.preLoadWeights = preLoadWeights
         self.weightFile = weightFile
+        self.links = []
 
     def weights_init(self):
         if not self.preLoadWeights:
@@ -70,11 +71,14 @@ class SOLUTION:
         else:
             color_name="Blue"
             rgb=[0,0,1]
+        # color_name = "Red"
+        # rgb=[1,0,0]
 
         pyrosim.Send_Cube(name="Head", pos=seg_pos, size=seg_size, color_name=color_name, rgb=rgb)
 
         parent_name = "Head"
         parent_size = seg_size
+        parent_blocked_direction = None
 
         for i in range(c.NUM_SEGMENTS):
             name = str(i)
@@ -82,9 +86,10 @@ class SOLUTION:
             has_sensor = True if random.randint(0, 1) == 1 else False
             if has_sensor: self.sensor_links.append(name)
             
-            size = self.CreateRandomSegment(name, i, parent_name, parent_size, has_sensor)
+            size, blocked_direction = self.CreateRandomSegment(name, i, parent_name, parent_size, has_sensor, parent_blocked_direction)
             parent_name = name
             parent_size = size
+            parent_blocked_direction = blocked_direction
 
         pyrosim.End()
 
@@ -107,22 +112,102 @@ class SOLUTION:
 
         pyrosim.End()
         
-    def CreateRandomSegment(self, seg_name, i, parent_name, parent_size, has_sensor):
+    def CreateRandomSegment(self, seg_name, i, parent_name, parent_size, has_sensor, blocked_direction):
+        
         seg_size = [random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND), random.uniform(c.MIN_RAND, c.MAX_RAND)]
         joint_name = parent_name + "_" + seg_name
         self.joints.append(joint_name)
-        joint_pos = [0, parent_size[1]/2, c.MAX_RAND/2] if i == 0 else [0, parent_size[1], 0]
 
-        # joint_axis_int = [random.randint(0, 1), random.randint(0, 1), random.randint(0, 1)]
-        # joint_axis = str(joint_axis_int[0]) + " " + str(joint_axis_int[1]) + " " + str(joint_axis_int[2])
-        joint_axis = "0 0 1"
+        joint_axis = random.choice(["0 0 1", "0 1 0", "1 0 0"])
+        # joint_axis = "1 0 0"
+
+
+        directions = [3, -3, 2, -2, 1, -1] # x, -x, y, -y, z, -z
+        prev_sign = 1
+        prev_dir = 3
+
+        if blocked_direction is not None:
+            directions.remove(blocked_direction)
+            prev_sign = np.sign(blocked_direction)
+            prev_dir = abs(blocked_direction)
+        direction = random.choice(directions)
+        
+        rand = random.uniform(-1, 1)
+        sign = np.sign(direction)
+        dir = abs(direction)
+
+        for i in range(2):
+            if dir != prev_dir:
+                direction = random.choice(directions)
+            else:
+                break
+        
+        if dir == 2: #y
+            if i==0:
+                joint_pos = [0, sign*parent_size[1]/2, c.MAX_RAND/2]
+            else:
+                if prev_dir == 2:
+                    joint_pos=[0, sign*parent_size[1], 0]
+                else:
+                    if prev_dir == 3: # x
+                        if prev_sign == sign:
+                            joint_pos = [sign*parent_size[0]/2, sign*parent_size[1]/2, 0]
+                        else:
+                            joint_pos = [prev_sign*parent_size[0]/2, sign*parent_size[1]/2, 0]
+                    else: # z
+                        if prev_sign == sign:
+                            joint_pos = [0, sign*parent_size[1]/2, sign*parent_size[2]/2]
+                        else:
+                            joint_pos = [0, sign*parent_size[1]/2, prev_sign*parent_size[2]/2]
+            cube_pos = [0, sign*seg_size[1]/2, 0] 
+        elif dir == 3: # x
+            if i==0:
+                joint_pos = [sign*parent_size[0]/2, 0, c.MAX_RAND/2]
+            else:
+                if prev_dir == 3:
+                    joint_pos = [sign*parent_size[0], 0, 0]
+                else:
+                    if prev_dir == 2: # y
+                        if prev_sign == sign:
+                            joint_pos = [sign*parent_size[0]/2, sign*parent_size[1]/2, 0]
+                        else:
+                            joint_pos = [sign*parent_size[0]/2, prev_sign*parent_size[1]/2, 0]
+                    else: # z
+                        if prev_sign == sign:
+                            joint_pos = [sign*parent_size[0]/2, 0, sign*parent_size[2]/2]
+                        else:
+                            joint_pos = [sign*parent_size[0]/2, 0, prev_sign*parent_size[2]/2]
+            cube_pos = [sign*seg_size[0]/2, 0, 0]
+        elif dir == 1: # z
+            if i==0:
+                joint_pos = [0, 0, parent_size[2]/2+c.MAX_RAND/2]
+                cube_pos = [0, 0, seg_size[2]/2]
+            else:
+                if prev_dir == 1:
+                    joint_pos = [0, 0, sign*parent_size[2]]
+                else:
+                    if prev_dir == 2: # y
+                        if prev_sign == sign:
+                            joint_pos = [0, sign*parent_size[1]/2, sign*parent_size[2]/2]
+                        else:
+                            joint_pos = [0, prev_sign*parent_size[1]/2, sign*parent_size[2]/2]
+                    else: # x
+                        if prev_sign == sign:
+                            joint_pos = [sign*parent_size[0]/2, 0, sign*parent_size[2]/2]
+                        else:
+                            joint_pos = [prev_sign*parent_size[0]/2, 0, sign*parent_size[2]/2]
+                cube_pos = [0, 0, sign*seg_size[2]/2]
+
+        new_blocked_direction = direction*-1
+
         pyrosim.Send_Joint(name=joint_name, parent=parent_name, child=seg_name, type="revolute", position=joint_pos, jointAxis=joint_axis)
+        
         if has_sensor:
             color_name="Green"
             rgb=[0,1,0]
         else:
             color_name="Blue"
             rgb=[0,0,1]
-        pyrosim.Send_Cube(name=seg_name, pos=[0, seg_size[1]/2, 0] , size=seg_size, color_name=color_name, rgb=rgb)
+        pyrosim.Send_Cube(name=seg_name, pos=cube_pos, size=seg_size, color_name=color_name, rgb=rgb)
 
-        return seg_size
+        return seg_size, new_blocked_direction
