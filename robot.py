@@ -21,11 +21,6 @@ class ROBOT:
         self.nn = NEURAL_NETWORK(brainFile)
         os.system("rm " + brainFile)
 
-        self.stepsInAir = 0
-        self.maxStepsInAir = 0
-        self.inAirLastStep = False
-        self.totalStepsInAir = 0
-
     def Prepare_To_Sense(self):
         self.sensors = {}
 
@@ -33,31 +28,8 @@ class ROBOT:
             self.sensors[linkName] = SENSOR(linkName)
 
     def Sense(self, i):
-
-        basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)
-        basePosition = basePositionAndOrientation[0]
-        zPos = basePosition[2]
-
-        inAirAndUpright = zPos > 2
-
         for sensor_name in self.sensors:
-            val = self.sensors[sensor_name].Get_Value(i)
-            if val != -1:
-                inAirAndUpright = False
-
-        if self.inAirLastStep and inAirAndUpright:
-            self.stepsInAir += 1
-        elif self.inAirLastStep:
-            if self.stepsInAir > c.STEPS_IN_AIR_PARAM:
-                self.totalStepsInAir += self.stepsInAir
-            self.stepsInAir = 0
-            self.inAirLastStep = False
-        elif inAirAndUpright:
-            self.inAirLastStep = True
-            self.stepsInAir = 1
-        
-        if self.stepsInAir > self.maxStepsInAir:
-            self.maxStepsInAir = self.stepsInAir
+            self.sensors[sensor_name].Get_Value(i)
 
     def Prepare_To_Act(self):
         self.motors = {}
@@ -78,16 +50,14 @@ class ROBOT:
 
     def Get_Fitness(self):
 
-        # basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)
-        # basePosition = basePositionAndOrientation[0]
-        # xPosition = basePosition[0]
-
-        weightedFit = 0.6*self.maxStepsInAir+0.4*self.totalStepsInAir
+        basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)
+        basePosition = basePositionAndOrientation[0]
+        xPosition = basePosition[0]
 
         tmpFileName = "tmp" + str(self.solutionID) + ".txt"
         fitnessFileName = "fitness" + str(self.solutionID) + ".txt"
         file = open(tmpFileName, "w")
-        file.write(str(weightedFit))
+        file.write(str(xPosition))
         file.close()
         os.system("mv " + tmpFileName + " " + fitnessFileName)
 

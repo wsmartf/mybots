@@ -19,7 +19,6 @@ class PARALLEL_HILL_CLIMBER:
 
         if not preLoadWeights:
             for i in range(c.POPULATION_SIZE):
-                print(self.nextAvailableID)
                 self.parents[i] = SOLUTION(self.nextAvailableID)
                 self.nextAvailableID += 1
         else:

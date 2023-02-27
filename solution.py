@@ -18,7 +18,6 @@ class SOLUTION:
         
         self.CreateRandomBot()
         self.weights_init()
-        self.Create_Brain()
 
         print("sensor_links: ", self.sensor_links)
         print("joints: ", self.joints)
@@ -34,6 +33,7 @@ class SOLUTION:
 
     def Start_Simulation(self, directOrGUI):
         # systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " 2&>1 &"
+        self.Create_Brain()
         systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " &"
 
         os.system(systemCommand)
@@ -58,8 +58,8 @@ class SOLUTION:
 
         self.weights[row1, col1] = random.random()*2-1
 
-    # def Set_ID(self, newID):
-    #     self.myID = newID
+    def Set_ID(self, newID):
+        self.myID = newID
 
     def Get_Fitness(self):
         return self.fitness  
@@ -132,8 +132,6 @@ class SOLUTION:
         self.joints.append(joint_name)
 
         joint_axis = random.choice(["0 0 1", "0 1 0", "1 0 0"])
-        # joint_axis = "1 0 0"
-
 
         directions = [3, -3, 2, -2, 1, -1] # x, -x, y, -y, z, -z
         prev_sign = 1
