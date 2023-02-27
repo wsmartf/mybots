@@ -16,10 +16,10 @@ class PARALLEL_HILL_CLIMBER:
         self.nextAvailableID = 0
 
         SOLUTION.Create_World()
-        SOLUTION.Create_Body()
 
         if not preLoadWeights:
             for i in range(c.POPULATION_SIZE):
+                print(self.nextAvailableID)
                 self.parents[i] = SOLUTION(self.nextAvailableID)
                 self.nextAvailableID += 1
         else:
@@ -98,7 +98,7 @@ class PARALLEL_HILL_CLIMBER:
         filename = "weights/" + "id" + str(parent.myID) + "_fit" + str(int(parent.Get_Fitness())) + ".npy"
         np.save(filename, parent.weights)
     
-    def Show_Prev(self, weight_file):
-        bot = SOLUTION(self.nextAvailableID, True, weight_file)
-        bot.Start_Simulation("GUI")
+    # def Show_Prev(self, weight_file):
+    #     bot = SOLUTION(self.nextAvailableID, True, weight_file)
+    #     bot.Start_Simulation("GUI")
 

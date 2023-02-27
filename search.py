@@ -1,13 +1,13 @@
 import os
-# from parallelHillClimber import PARALLEL_HILL_CLIMBER
+from parallelHillClimber import PARALLEL_HILL_CLIMBER
 from snake import SNAKE
 
-snake = SNAKE()
-snake.Simulate()
+# snake = SNAKE()
+# snake.Simulate()
 
-# phc = PARALLEL_HILL_CLIMBER()
-# phc.Evolve()
-# phc.Show_Best()
+phc = PARALLEL_HILL_CLIMBER()
+phc.Evolve()
+phc.Show_Best()
 
 ### Uncomment to demo evolved robots ###
 # r1 = "weights/evolvedBots/id2287_fit538.npy"

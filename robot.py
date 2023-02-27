@@ -17,6 +17,7 @@ class ROBOT:
         self.Prepare_To_Act()
 
         brainFile = "brain" + str(self.solutionID) + ".nndf"
+
         self.nn = NEURAL_NETWORK(brainFile)
         os.system("rm " + brainFile)
 

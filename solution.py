@@ -7,51 +7,65 @@ import constants as c
 
 class SOLUTION:
 
-    def __init__(self, nextAvailableID=0, preLoadWeights=False, weightFile=None):
+    def __init__(self, nextAvailableID, preLoadWeights=False, weightFile=None):
         self.myID = nextAvailableID
         self.sensor_links = []
         self.joints = []
         self.preLoadWeights = preLoadWeights
         self.weightFile = weightFile
         self.links = []
+        self.num_segments = random.randint(2,7)
+        
+        self.CreateRandomBot()
+        self.weights_init()
+        self.Create_Brain()
+
+        print("sensor_links: ", self.sensor_links)
+        print("joints: ", self.joints)
+        print("weights: ", self.weights)
+        print("shape: ", self.weights.shape)
+       
 
     def weights_init(self):
         if not self.preLoadWeights:
-            self.weights = np.random.rand(len(self.sensor_links),c.NUM_SEGMENTS)*2-1
+            self.weights = np.random.rand(len(self.sensor_links),len(self.joints))*2-1
         else:
             self.weights = np.load(self.weightFile)
 
     def Start_Simulation(self, directOrGUI):
-        # self.Create_Brain()
         # systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " 2&>1 &"
         systemCommand = "python3 simulate.py " + directOrGUI + " " + str(self.myID) + " &"
 
         os.system(systemCommand)
 
     def Wait_For_Simulation_To_End(self):
-        # fitnessFileName = "fitness" + str(self.myID) + ".txt"
-        # while not os.path.exists(fitnessFileName):
-        #     time.sleep(0.01)
+        fitnessFileName = "fitness" + str(self.myID) + ".txt"
+        while not os.path.exists(fitnessFileName):
+            time.sleep(0.01)
 
-        # file = open(fitnessFileName, "r")
-        # self.fitness = float(file.read())
-        # file.close()
-        # # print(self.fitness)
-        # os.system("rm " + fitnessFileName)
-        pass
+        file = open(fitnessFileName, "r")
+        self.fitness = float(file.read())
+        file.close()
+        # print(self.fitness)
+        os.system("rm " + fitnessFileName)
     
-    # def Mutate(self):
-    #     row1 = random.randint(0,c.NUM_SENSOR_NEURONS-1)
-    #     col1 = random.randint(0,c.NUM_MOTOR_NEURONS-1)
-    #     self.weights[row1, col1] = random.random()*2-1
+    def Mutate(self):
+        row1 = random.randint(0,len(self.sensor_links)-1)
+        # print("num s links: ", len(self.sensor_links), " row1: ", row1)
 
-    def Set_ID(self, newID):
-        self.myID = newID
+        col1 = random.randint(0,len(self.joints)-1)
+        # print("num joints: ", len(self.joints), " row2: ", col1)
+
+        self.weights[row1, col1] = random.random()*2-1
+
+    # def Set_ID(self, newID):
+    #     self.myID = newID
 
     def Get_Fitness(self):
         return self.fitness  
-
-    def Create_World(self):
+    
+    @(staticmethod)
+    def Create_World():
         pyrosim.Start_SDF("world.sdf")
         pyrosim.End()   
 
@@ -71,8 +85,6 @@ class SOLUTION:
         else:
             color_name="Blue"
             rgb=[0,0,1]
-        # color_name = "Red"
-        # rgb=[1,0,0]
 
         pyrosim.Send_Cube(name="Head", pos=seg_pos, size=seg_size, color_name=color_name, rgb=rgb)
 
@@ -80,7 +92,7 @@ class SOLUTION:
         parent_size = seg_size
         parent_blocked_direction = None
 
-        for i in range(c.NUM_SEGMENTS):
+        for i in range(self.num_segments):
             name = str(i)
 
             has_sensor = True if random.randint(0, 1) == 1 else False
@@ -93,11 +105,12 @@ class SOLUTION:
 
         pyrosim.End()
 
-        self.weights_init()
+        # self.weights_init()
 
+    def Create_Brain(self):
         # Brain
         pyrosim.Start_NeuralNetwork("brain" + str(self.myID) + ".nndf")
-
+    
         for i in range(len(self.sensor_links)):
             pyrosim.Send_Sensor_Neuron(name = i , linkName = self.sensor_links[i])
 
@@ -109,8 +122,8 @@ class SOLUTION:
                 pyrosim.Send_Synapse(sourceNeuronName = currentRow,
                                     targetNeuronName = currentColumn+len(self.sensor_links), 
                                     weight = self.weights[currentRow][currentColumn])
-
         pyrosim.End()
+
         
     def CreateRandomSegment(self, seg_name, i, parent_name, parent_size, has_sensor, blocked_direction):
         
