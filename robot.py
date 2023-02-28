@@ -10,8 +10,9 @@ import math
 class ROBOT:
 
     def __init__(self, solutionID):
-        self.robotId = p.loadURDF("body.urdf")
         self.solutionID = solutionID
+        bodyFile = "body" + str(self.solutionID) + ".urdf"
+        self.robotId = p.loadURDF(bodyFile)
         pyrosim.Prepare_To_Simulate(self.robotId)
         self.Prepare_To_Sense()
         self.Prepare_To_Act()
@@ -20,10 +21,11 @@ class ROBOT:
 
         self.nn = NEURAL_NETWORK(brainFile)
         os.system("rm " + brainFile)
+        os.system("rm " + bodyFile)
+
 
     def Prepare_To_Sense(self):
         self.sensors = {}
-
         for linkName in pyrosim.linkNamesToIndices:
             self.sensors[linkName] = SENSOR(linkName)
 

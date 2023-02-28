@@ -11,9 +11,11 @@ class PARALLEL_HILL_CLIMBER:
     def __init__(self, preLoadWeights=False, fileNames=None):
         os.system("rm brain*.nndf")
         os.system("rm fitness*.txt")
+        os.system("rm body*.txt")
 
         self.parents = {}
         self.nextAvailableID = 0
+        self.fitnesses = []
 
         SOLUTION.Create_World()
 
@@ -31,6 +33,9 @@ class PARALLEL_HILL_CLIMBER:
 
         for currentGeneration in range(c.NUM_GENERATIONS):
             self.Evolve_For_One_Generation(currentGeneration)
+            self.fitnesses.append(self.Best_Parent()[1])
+
+        return self.fitnesses
                 
     def Evolve_For_One_Generation(self, currentGeneration):
         self.Spawn()
@@ -57,9 +62,9 @@ class PARALLEL_HILL_CLIMBER:
 
     def Mutate(self):
         for childIndex in self.children:
-            num_mutations = random.randint(1,5)
-            for i in range(num_mutations):
-                self.children[childIndex].Mutate()
+            # num_mutations = random.randint(1,self.children[childIndex].num_segments)
+            # for i in range(num_mutations):
+            self.children[childIndex].Mutate()
 
     def Select(self):
         for key in self.children:
@@ -69,23 +74,24 @@ class PARALLEL_HILL_CLIMBER:
     def Print(self, currentGen):
         print(currentGen)
         for el in self.parents:
-            print("Parent: ", int(self.parents[el].Get_Fitness()), "| Child: ", int(self.children[el].Get_Fitness()))
+            print("Parent: ", self.parents[el].Get_Fitness(), "| Child: ", self.children[el].Get_Fitness())
+            # print("Parent: ", self.parents[el].weights, "| Child: ", self.children[el].weights)
 
-    def Show_Best(self):
-        best_parent_key = "None"
-        best_fitness = 0
+    def Best_Parent(self):
+        best_parent_key = 0
+        best_fitness = -1000
         for key in self.parents:
             parent_fitness = self.parents[key].Get_Fitness()
             if parent_fitness > best_fitness:
                 best_fitness = parent_fitness
                 best_parent_key = key
 
-        best_parent = self.parents[best_parent_key]    
+        return self.parents[best_parent_key], best_fitness  
+
+    def Show_Best(self):
+        best_parent, best_fitness = self.Best_Parent()
         best_parent.Start_Simulation("GUI")
-
-        self.Save_Weight(best_parent)
-        # self.Save_Weights()
-
+        best_parent.Wait_For_Simulation_To_End()
         print("Best fitness: ", best_fitness)
 
     def Save_Weights(self):
