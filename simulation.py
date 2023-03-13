@@ -6,13 +6,12 @@ import pyrosim.pyrosim as pyrosim
 import constants as c
 
 import time
-import numpy as np
 import constants as c
 
 
 class SIMULATION:
 
-    def __init__(self, directOrGUI, solutionID):
+    def __init__(self, directOrGUI, solutionID, loadDir=None):
         self.runType = directOrGUI
         if self.runType == "DIRECT":
             self.physicsClient = p.connect(p.DIRECT)
@@ -24,7 +23,10 @@ class SIMULATION:
         p.setGravity(0,0,c.GRAVITY)
 
         self.world = WORLD()
-        self.robot = ROBOT(solutionID)
+        if not loadDir:
+            self.robot = ROBOT(solutionID)
+        else:
+            self.robot = ROBOT(solutionID, loadDir)
 
     def Run(self):
         

@@ -9,19 +9,29 @@ import math
 
 class ROBOT:
 
-    def __init__(self, solutionID):
+    def __init__(self, solutionID, loadDir=None):
         self.solutionID = solutionID
-        bodyFile = "body" + str(self.solutionID) + ".urdf"
+
+        if loadDir:
+            bodyFile = loadDir + "/body" + str(self.solutionID) + ".urdf"
+            brainFile = loadDir + "/brain" + str(self.solutionID) + ".nndf"
+        else:    
+            bodyFile = "body" + str(self.solutionID) + ".urdf"
+            brainFile = "brain" + str(self.solutionID) + ".nndf"
+
+
         self.robotId = p.loadURDF(bodyFile)
         pyrosim.Prepare_To_Simulate(self.robotId)
+
         self.Prepare_To_Sense()
         self.Prepare_To_Act()
-
-        brainFile = "brain" + str(self.solutionID) + ".nndf"
+        
 
         self.nn = NEURAL_NETWORK(brainFile)
-        os.system("rm " + brainFile)
-        os.system("rm " + bodyFile)
+        
+        if not loadDir:
+            os.system("rm " + brainFile)
+            os.system("rm " + bodyFile)
 
 
     def Prepare_To_Sense(self):

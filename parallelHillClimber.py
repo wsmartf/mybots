@@ -3,12 +3,10 @@ import constants as c
 import copy
 import os
 import pyrosim.pyrosim as pyrosim
-import numpy as np
-import random
 
 class PARALLEL_HILL_CLIMBER:
 
-    def __init__(self, preLoadWeights=False, fileNames=None):
+    def __init__(self):
         os.system("rm brain*.nndf")
         os.system("rm fitness*.txt")
         os.system("rm body*.txt")
@@ -19,13 +17,8 @@ class PARALLEL_HILL_CLIMBER:
 
         SOLUTION.Create_World()
 
-        if not preLoadWeights:
-            for i in range(c.POPULATION_SIZE):
+        for i in range(c.START_POPULATION_SIZE):
                 self.parents[i] = SOLUTION(self.nextAvailableID)
-                self.nextAvailableID += 1
-        else:
-            for i in range(len(fileNames)):
-                self.parents[i] = SOLUTION(self.nextAvailableID, preLoadWeights=True, weightFile=fileNames[i])
                 self.nextAvailableID += 1
 
     def Evolve(self):
@@ -33,8 +26,11 @@ class PARALLEL_HILL_CLIMBER:
 
         for currentGeneration in range(c.NUM_GENERATIONS):
             self.Evolve_For_One_Generation(currentGeneration)
-            self.fitnesses.append(self.Best_Parent()[1])
-
+            # save best fitness every 5 generations for plotting
+            if currentGeneration % 10 == 0:
+                best_fit = self.Best_Parent()[1]
+                self.fitnesses.append(best_fit)
+                print(f'Gen: {currentGeneration} | Best fit: {best_fit}')
         return self.fitnesses
                 
     def Evolve_For_One_Generation(self, currentGeneration):
@@ -42,7 +38,8 @@ class PARALLEL_HILL_CLIMBER:
         self.Mutate()
 
         self.Evaluate(self.children)
-        self.Print(currentGeneration)
+        if c.PRINT:
+            self.Print(currentGeneration)
         self.Select()
 
     def Evaluate(self, solutions):
@@ -62,8 +59,6 @@ class PARALLEL_HILL_CLIMBER:
 
     def Mutate(self):
         for childIndex in self.children:
-            # num_mutations = random.randint(1,self.children[childIndex].num_segments)
-            # for i in range(num_mutations):
             self.children[childIndex].Mutate()
 
     def Select(self):
@@ -72,10 +67,9 @@ class PARALLEL_HILL_CLIMBER:
                 self.parents[key] = self.children[key]
 
     def Print(self, currentGen):
-        print(currentGen)
+        print(f'Gen: {currentGen}')
         for el in self.parents:
             print("Parent: ", self.parents[el].Get_Fitness(), "| Child: ", self.children[el].Get_Fitness())
-            # print("Parent: ", self.parents[el].weights, "| Child: ", self.children[el].weights)
 
     def Best_Parent(self):
         best_parent_key = 0
@@ -88,22 +82,12 @@ class PARALLEL_HILL_CLIMBER:
 
         return self.parents[best_parent_key], best_fitness  
 
-    def Show_Best(self):
+    def Save_Best(self, show="true", id=0):
         best_parent, best_fitness = self.Best_Parent()
-        best_parent.Start_Simulation("GUI")
-        best_parent.Wait_For_Simulation_To_End()
-        print("Best fitness: ", best_fitness)
+        if show == "true":
+            best_parent.Start_Simulation("GUI")
+            best_parent.Wait_For_Simulation_To_End()
+        best_parent.Save_Bot(id)
+        print(f"Best parent: {best_parent.myID} | Best fitness: {best_fitness}")
 
-    def Save_Weights(self):
-        for parent_key in self.parents:
-            parent = self.parents[parent_key]
-            self.Save_Weight(parent)
-
-    def Save_Weight(self, parent):
-        filename = "weights/" + "id" + str(parent.myID) + "_fit" + str(int(parent.Get_Fitness())) + ".npy"
-        np.save(filename, parent.weights)
-    
-    # def Show_Prev(self, weight_file):
-    #     bot = SOLUTION(self.nextAvailableID, True, weight_file)
-    #     bot.Start_Simulation("GUI")
 
