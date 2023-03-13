@@ -6,8 +6,8 @@ import constants as c
 import argparse
 import time
 
-def show_bot_i(i, save_dir):
-    os.system(f"python3 simulate.py GUI {str(i)} {str(save_dir)}")
+def show_bot_i(i, load_dir):
+    os.system(f"python3 simulate.py GUI {str(i)} {str(load_dir)} 2&>1 &")
 
     fitnessFileName = "fitness" + str(i) + ".txt"
     while not os.path.exists(fitnessFileName):
@@ -50,7 +50,7 @@ def main():
                 best_run = i
         
         # Show best overall bot
-        show_bot_i(i=best_run, save_dir=params.save_dir)
+        show_bot_i(i=best_run, load_dir=params.save_dir)
 
         # plot a graph of fitness curves
         for i in range(len(fit_curves)):
@@ -60,9 +60,9 @@ def main():
     else:
         if params.bot_num == -1:
             for i in range(c.NUM_RUNS):
-                show_bot_i(i, save_dir=params.load_dir)
+                show_bot_i(i, load_dir=params.load_dir)
         else:
-            show_bot_i(i=params.bot_num, save_dir=params.load_dir)
+            show_bot_i(i=params.bot_num, load_dir=params.load_dir)
         
 if __name__ == "__main__": 
     main()

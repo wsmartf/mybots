@@ -3,8 +3,10 @@
 # Run Instructions
 After installing the needed dependencies...
 To view 10 evolved robots: `python3 search.py -mode=load`
+* Set constants.py STEPS=500 for shorter simulations.
 
 To start new evolution: `python3 search.py -mode=evolve`
+* Set constants.py PRINT=True to print bot fitnesses at each generation.
 
 To reproduce results, run evolution with the current values in constants.py.
 
@@ -47,7 +49,7 @@ I also included a video that shows simulations of the evolved bots. It's apparen
 
 ![Fitness curves](fitness_curves.png)
 
-From playing around with different parameters for the robots and their evolution, I came away with some insights. I achieved greater success from modifying more weights at once, rather than just 1 per generation. Additionally, modifying the weights by multiplying by some factor instead of just overwriting it allowed the brains to better "hone in" on the ideal weights for a more productive movement pattern, because it could evolve smaller adjustments. Next, choosing to only have multiple links branch from the previous link 50% of the time tends towards simpler and more compact bots that tended to perform better. The best bots tended to have more sensor neurals, especially that were located in places that make contact with the ground. They were "simpler" in design—it may be easier for the brain to learn to control a more simple and compact form, instead of one with many limbs that puts it off balance.
+From playing around with different parameters for the robots and their evolution, I came away with some insights. I achieved greater success from modifying more weights at once, rather than just 1 per generation. This way, even if a bot got stuck in an evolutionary rut—getting stuck in a sort of local performance maximum—there was still a chance that up to 10 of the weights could randomly change to cause an jump in performance. Additionally, modifying the weights by multiplying by some factor instead of just overwriting it allowed the brains to better "hone in" on the ideal weights for a more productive movement pattern, because it could evolve smaller adjustments. Next, choosing to only have multiple links branch from the previous link 50% of the time tends towards simpler and more compact bots that tended to perform better. The best bots tended to have more sensor neurals, especially that were located in places that make contact with the ground. They were "simpler" in design—it may be easier for the brain to learn to control a more simple and compact form, instead of one with many limbs that puts it off balance.
 
 I also did a run with 1000 generations, but had technical difficulties that didn't allow me to save the fitness values for the plot. I show robots that evolved for 500 and for 1000 generations in the video.
 
@@ -55,6 +57,7 @@ I also did a run with 1000 generations, but had technical difficulties that didn
 There are some techniques I would like to experiment with in the future to achieve even better results. These include:
 * Programatically modify all parameters and do a grid search: probabilities that determine number of links, likelihood of sensing links, likelihood of different types of mutation, min and max link size, number of simulation steps, etc.
 * The majority of the performance depends on generating a good body in the first place, but it is computationally expensive to take thousands of parent bodies through 500 generations of evolution. I'd like to introduce pruning, where after every generation, the bottom 20% of bots are pruned, until you reach some number of parents (i.e. 20), and then continue evolving those for more generations.
+* Limit the size of links, as many evolutionary designs were held back by links that were too large and slowed down the bot.
 
 # Resources
 
