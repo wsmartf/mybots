@@ -1,5 +1,9 @@
 # COMP_SCI 396, Artificial Life: Final Project
 
+![Gif](https://i.imgur.com/zB8oiYO.gif)
+
+See full video: https://youtu.be/mi6oHDuArF8
+
 # Run Instructions
 After installing the needed dependencies...
 To view 10 evolved robots: `python3 search.py -mode=load`
