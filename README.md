@@ -1,6 +1,6 @@
 # COMP_SCI 396, Artificial Life: Final Project
 
-![Gif](https://i.imgur.com/zB8oiYO.gif)
+![Gif](images/teaser.gif)
 
 See full video: https://youtu.be/mi6oHDuArF8
 
@@ -29,7 +29,7 @@ The method I use to randomly place new links is described below:
 3. If the current and previous direction are along the same axis, for example both in the +x-direction, then the new joint position is expressed as [previous_link_size_x_direction, 0, 0]. The new link position is expressed as [new_link_size_x_direction/2, 0, 0]. When the current and previous directions are along different axes, then the new vector has values along those axes with magnitudes of previous_link_size\*0.5. This logic is performed by branch_in_dir(), lines 149-191.
 4. Each generated link has a 50% chance of being a sensor link.
 
-![Diagram 1](diagram1.png)
+![Diagram 1](images/diagram1.png)
 
 ## Brain Generation
 
@@ -43,7 +43,7 @@ The code runs 500,000 simulations to evolve the best robots for locomotion in th
 
 At the start of each generation, a mutated child is created from the parent. Several features of the robot can mutate (see Figure 4): any of the neuron weights, the joint axes (about which axis each joint moves), and the size of the dimensions of each link. Each feature has a specified probability of mutating at any given generation. The Solution class's Mutatate() function is called to start the mutation process for a given robot. Within this function, some random number of brain weights are modified, either assigning the weight a completely new random value or multiplying the existing weight by a value between [0.8, 1.2]. Then, each link/joint pair undergoes individual mutations as specified in Link class. Here, each joint has a random chance of changing axes, and each link has a random chance of modifying its shape. If a link's shape is modified, then link.py's adjust() function is called on its child link(s) to correct the joint positions. I also have other checks in these mutation functions to ensure that a link's dimensions don't grow too small (<0.1) or too large (>2.0), and the brain weights stay in the range [-1,1].
 
-![Diagram 2](diagram2.png)
+![Diagram 2](images/diagram2.png)
 
 # Results
 
@@ -51,7 +51,7 @@ Overall, running the evolutionary process as described above produced bots that 
 
 I also included a video that shows simulations of the evolved bots. It's apparent from the video that some robots evolved superior bodies, while others honed in on their brain weights to achieve a smooth gait. The unevolved bots had clunky bodies and completely random movements, and many of the "winners" from early generations were simply robots that "fell over" in the +X direction and therefore had the highest fitness. However, after 500 generations, the bots evolved efficient and interesting bodies and movements. Some rested on the ground, scooting themselves forward. Others balanced on one link and hopped forward. 
 
-![Fitness curves](fitness_curves.png)
+![Fitness curves](images/fitness_curves.png)
 
 From playing around with different parameters for the robots and their evolution, I came away with some insights. I achieved greater success from modifying more weights at once, rather than just 1 per generation. This way, even if a bot got stuck in an evolutionary rut—getting stuck in a sort of local performance maximum—there was still a chance that up to 10 of the weights could randomly change to cause an jump in performance. Additionally, modifying the weights by multiplying by some factor instead of just overwriting it allowed the brains to better "hone in" on the ideal weights for a more productive movement pattern, because it could evolve smaller adjustments. Next, choosing to only have multiple links branch from the previous link 50% of the time tends towards simpler and more compact bots that tended to perform better. The best bots tended to have more sensor neurals, especially that were located in places that make contact with the ground. They were "simpler" in design—it may be easier for the brain to learn to control a more simple and compact form, instead of one with many limbs that puts it off balance.
 
